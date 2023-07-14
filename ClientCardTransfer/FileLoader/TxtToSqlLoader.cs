@@ -16,13 +16,15 @@ namespace ClientCardTransfer.FileLoader
     public class TxtToSqlLoader
     {
         private readonly ILogger<TxtToSqlLoader> _logger;
+        private readonly ApplicationDbContext _context;
         private readonly IClientRepository _clientRepository;
         private readonly ICardRepository _cardRepository;
         private readonly IUnitOfWork _unitOfWork;
 
-        public TxtToSqlLoader(ILogger<TxtToSqlLoader> logger, IClientRepository clientRepository, ICardRepository cardRepository, IUnitOfWork unitOfWork)
+        public TxtToSqlLoader(ILogger<TxtToSqlLoader> logger, ApplicationDbContext context, IClientRepository clientRepository, ICardRepository cardRepository, IUnitOfWork unitOfWork)
         {
             _logger = logger;
+            _context = context;
             _clientRepository = clientRepository;
             _cardRepository = cardRepository;
             _unitOfWork = unitOfWork;
@@ -54,10 +56,10 @@ namespace ClientCardTransfer.FileLoader
         }
         private static async Task<List<Client>> LoadClientsFromTextFile(string filePath)
         {
-            List<Client> clients = new();
+            List<Client> clients = new List<Client>();
             int id = 1;
 
-            using (StreamReader reader = new(filePath))
+            using (StreamReader reader = new StreamReader(filePath))
             {
                 string line;
                 while ((line = await reader.ReadLineAsync()) != null)
@@ -66,7 +68,7 @@ namespace ClientCardTransfer.FileLoader
                     string name = values[0];
                     string extenalId = values[1];
 
-                    Client client = new()
+                    Client client = new Client()
                     {
                         Id = id,
                         Name = name,
@@ -82,17 +84,17 @@ namespace ClientCardTransfer.FileLoader
 
         private static async Task<List<Card>> LoadCardsFromTextFile(string filePath, IClientRepository _clientRepository)
         {
-            List<Card> cards = new();
+            List<Card> cards = new List<Card>();
             int id = 1;
 
-            using (StreamReader reader = new(filePath))
+            using (StreamReader reader = new StreamReader(filePath))
             {
                 string line;
                 while ((line = await reader.ReadLineAsync()) != null)
                 {
                     string[] values = line.Split('|');
 
-                    Card card = new()
+                    Card card = new Card()
                     {
                         Id = id,
                         ClientExtenalId = values[3].Trim(),

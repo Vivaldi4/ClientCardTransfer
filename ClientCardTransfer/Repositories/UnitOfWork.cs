@@ -10,8 +10,8 @@ namespace ClientCardTransfer.Repositories
     public class UnitOfWork : IUnitOfWork
     {
         private readonly ApplicationDbContext _context;
-        private readonly Lazy<ICardRepository> _cardRepository;
-        private readonly Lazy<IClientRepository> _clientRepository;
+        private Lazy<ICardRepository> _cardRepository;
+        private Lazy<IClientRepository> _clientRepository;
         public ICardRepository CardRepository => _cardRepository.Value;
         public IClientRepository ClientRepository => _clientRepository.Value;
 

@@ -14,18 +14,20 @@ namespace ClientCardTransfer.Service
     public class WorkService : BackgroundService
     {
         private readonly ILogger<WorkService> _logger;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly Setting _setting;
         private readonly TxtToSqlLoader _xtToSqlLoader;
-        public WorkService(ILogger<WorkService> logger, Setting setting, TxtToSqlLoader txtToSqlLoader)
+        public WorkService(ILogger<WorkService> logger, Setting setting, TxtToSqlLoader txtToSqlLoader, IUnitOfWork unitOfWork)
         {
             _logger = logger;
             _setting = setting;
             _xtToSqlLoader = txtToSqlLoader;
+            _unitOfWork = unitOfWork;
         }
         private static string ExtractValueAfterSubstring(string fileName, string substring)
         {
             int index = fileName.IndexOf(substring) + substring.Length;
-            return fileName[index..];
+            return fileName.Substring(index);
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -33,7 +35,15 @@ namespace ClientCardTransfer.Service
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                _ = new DirectoryInfo(Path.Combine(_setting.Directory));// Создаем объект DirectoryInfo для заданного пути
+                // _logger.LogInformation($"Current folder: {_setting.Directory}", DateTimeOffset.Now);
+
+                DirectoryInfo directory = new DirectoryInfo(Path.Combine(_setting.Directory));// Создаем объект DirectoryInfo для заданного пути
+
+                //FileInfo[] files = directory.GetFiles();// Получаем массив файлов в указанной директории
+
+                //string pattern = @"_?(\w+)$";
+                //Regex regex = new Regex(pattern, RegexOptions.Compiled); Глупая машина посоветовала
+
                 IEnumerable<string> clientFiles = Directory.EnumerateFiles(_setting.Directory, $"*{_setting.ClientName}*");
                 IEnumerable<string> cardFiles = Directory.EnumerateFiles(_setting.Directory, $"*{_setting.CardName}*");
                 foreach (var clientFile in clientFiles)
@@ -51,7 +61,7 @@ namespace ClientCardTransfer.Service
 
                             //TxtToSqlLoader txtToSql = new TxtToSqlLoader("DataBaseAddres");
                             //txtToSql.LoadFilesToSql(clientFile, cardFile);
-                            await _xtToSqlLoader.LoadFilesToSql(clientFile, cardFile);
+                             _xtToSqlLoader.LoadFilesToSql(clientFile, cardFile);
 
                         }
                     }
