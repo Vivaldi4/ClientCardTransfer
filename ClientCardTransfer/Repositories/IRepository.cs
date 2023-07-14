@@ -10,6 +10,7 @@ namespace ClientCardTransfer.Repositories
     {
         Task<IEnumerable<T>> GetAll();
         Task<T> GetById(int id);
+        Task AddRange(IEnumerable<T> entities);
         void Add(T entity);
         void Update(T entity);
         void Delete(T entity);

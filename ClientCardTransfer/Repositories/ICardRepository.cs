@@ -9,5 +9,6 @@ namespace ClientCardTransfer.Repositories
     public interface ICardRepository : IRepository<Card>
     {
         Task<IEnumerable<Card>> GetCardsByClientId(int clientId);
+        Task ClearAllCards();
     }
 }

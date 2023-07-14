@@ -19,5 +19,10 @@ namespace ClientCardTransfer.Repositories
         {
             return await _dbSet.Where(c => c.ClientId == clientId).ToListAsync();
         }
+        public async Task ClearAllCards()
+        {
+            _dbSet.RemoveRange(_dbSet);
+            await _context.SaveChangesAsync();
+        }
     }
 }

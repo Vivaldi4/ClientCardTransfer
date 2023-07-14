@@ -4,45 +4,55 @@ using System.IO;
 using ClientCardTransfer.Models;
 using System.Collections.Generic;
 using System.Linq;
+using ClientCardTransfer.Data;
+using ClientCardTransfer.Repositories;
+using System.Threading.Tasks;
+using System;
+using ClientCardTransfer.Service;
+using Microsoft.Extensions.Logging;
 
 namespace ClientCardTransfer.FileLoader
 {
     public class TxtToSqlLoader
     {
-        private readonly string _connectionString;
+        private readonly ILogger<TxtToSqlLoader> _logger;
+        private readonly ApplicationDbContext _context;
+        private readonly IClientRepository _clientRepository;
+        private readonly ICardRepository _cardRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public TxtToSqlLoader(string connectionString)
+        public TxtToSqlLoader(ILogger<TxtToSqlLoader> logger, ApplicationDbContext context, IClientRepository clientRepository, ICardRepository cardRepository, IUnitOfWork unitOfWork)
         {
-            _connectionString = connectionString;
+            _logger = logger;
+            _context = context;
+            _clientRepository = clientRepository;
+            _cardRepository = cardRepository;
+            _unitOfWork = unitOfWork;
         }
 
-        public void LoadFilesToSql(string clientFilePath, string cardFilePath)
-        {                                  
-            using (var context = new MyDbContext(_connectionString))
+        public async Task LoadFilesToSql(string clientFilePath, string cardFilePath)
+        {
+            try
             {
-                
-
-                //context.SaveChanges();
                 List<Client> clients = LoadClientsFromTextFile(clientFilePath); // Загрузка клиентов из файла
-                // Загрузка данных из файла Clients_.txt в таблицу Clients
-                foreach (var client in clients)
-                {
-                    context.Clients.Add(client);
-                }
+                List<Card> cards = LoadCardsFromTextFile(cardFilePath); // Загрузка карт из файла
 
-                context.SaveChanges();
+                // Очистка существующих данных перед загрузкой новых данных
+                await _clientRepository.ClearAllClients();
+                await _cardRepository.ClearAllCards();
 
-                List<Card> cards = LoadCardsFromTextFile(cardFilePath, _connectionString); // Загрузка карт из файла
-                // Загрузка данных из файла Cards_.txt в таблицу Cards
-                foreach (var card in cards)
-                {
-                    context.Cards.Add(card);
-                }
+                // Сохранение клиентов и карт через репозитории
+                await _clientRepository.AddRange(clients);
+                await _cardRepository.AddRange(cards);
 
-                context.SaveChanges();
+                // Применение изменений в базе данных через Unit of Work
+                await _unitOfWork.SaveChangesAsync();
             }
-
-
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while loading files to the database.");
+                throw; // Или выполните другую обработку ошибки, в зависимости от требований
+            }
         }
         private static List<Client> LoadClientsFromTextFile(string filePath)
         {
@@ -67,10 +77,8 @@ namespace ClientCardTransfer.FileLoader
             return clients;
         }
 
-        private static List<Card> LoadCardsFromTextFile(string filePath,string connectionstring)
+        private static List<Card> LoadCardsFromTextFile(string filePath)
         {
-            using (var context = new MyDbContext(connectionstring))
-            {
                 List<Card> cards = new List<Card>();
                 int id = 1;
                 foreach (string line in File.ReadAllLines(filePath))
@@ -88,7 +96,7 @@ namespace ClientCardTransfer.FileLoader
                         BankName = values[2].Trim()
                     };
                     // Находим клиента по внешнему идентификатору (номеру договора)
-                    var client = context.Clients.FirstOrDefault(c => c.ExtenalId == card.ClientExtenalId);
+                    var client = _clientRepository.GetClientByExtenalId(card.ClientExtenalId).Result;
 
                     if (client != null)
                     {
@@ -98,41 +106,8 @@ namespace ClientCardTransfer.FileLoader
                     id++;
                     cards.Add(card);
                 }
-
                 return cards;
-            }
-        }
-      
-    }
-    
-    // Контекст базы данных
-    public class MyDbContext : DbContext
-    {
-        private readonly string _connectionString;
-        public MyDbContext(string connectionString)
-        {
-            _connectionString = connectionString;
-        }
-        // Определите наборы моделей, соответствующие таблицам базы данных
-        public DbSet<Client> Clients { get; set; }
-        public DbSet<Card> Cards { get; set; }
-
-        
-        
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            optionsBuilder.UseSqlServer(_connectionString);
-        }
-
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            // Определение отношений между моделями Client и Card
-            modelBuilder.Entity<Card>()
-                .HasOne(c => c.Client)
-                .WithMany(c => c.Cards)
-                .HasForeignKey(c => c.ClientId);
+            
         }
     }
-  
 }

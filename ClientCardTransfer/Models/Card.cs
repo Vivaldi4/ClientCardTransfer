@@ -14,6 +14,6 @@ namespace ClientCardTransfer.Models
         public string CardNumber { get; set; }
         public string CardType { get; set; }
         public string BankName { get; set; }
-        public DateTime DeleteDate { get; set; }
+        public DateTime? DeleteDate { get; set; }
     }
 }

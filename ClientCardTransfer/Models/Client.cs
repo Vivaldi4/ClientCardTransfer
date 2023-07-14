@@ -15,6 +15,6 @@ namespace ClientCardTransfer.Models
         public string Name { get; set; }
         public string ExtenalId { get; set; }//номер договора
         public List<Card> Cards { get; set; } // Список карт клиента
-        public DateTime DeleteDate { get; set; }
+        public DateTime? DeleteDate { get; set; }
     }
 }

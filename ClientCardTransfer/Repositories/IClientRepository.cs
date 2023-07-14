@@ -9,5 +9,7 @@ namespace ClientCardTransfer.Repositories
     public interface IClientRepository : IRepository<Client>
     {
         Task<IEnumerable<Client>> GetAllActiveClients();
+        Task<Client> GetClientByExtenalId(string extenalId);
+        Task ClearAllClients();
     }
 }

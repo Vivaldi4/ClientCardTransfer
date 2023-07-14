@@ -29,6 +29,13 @@ namespace ClientCardTransfer
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddLogging();
+            // Регистрация репозиториев и UnitOfWork
+            services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+            services.AddScoped<ICardRepository, CardRepository>();
+            services.AddScoped<IClientRepository, ClientRepository>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            services.AddControllers();
             services.AddHostedService<WorkService>();//регестрирует и запускает фоновую задачу
             var setting = new Setting();
             Configuration.GetSection(key: "Setting").Bind(setting);

@@ -18,7 +18,11 @@ namespace ClientCardTransfer.Repositories
             _context = context;
             _dbSet = _context.Set<T>();
         }
-
+        public async Task AddRange(IEnumerable<T> entities)
+        {
+            await _dbSet.AddRangeAsync(entities);
+            await _context.SaveChangesAsync();
+        }
         public virtual async Task<IEnumerable<T>> GetAll()
         {
             return await _dbSet.ToListAsync();
