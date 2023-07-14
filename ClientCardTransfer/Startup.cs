@@ -34,7 +34,6 @@ namespace ClientCardTransfer
             services.AddScoped<ICardRepository, CardRepository>();
             services.AddScoped<IClientRepository, ClientRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
-
             services.AddControllers();
             services.AddHostedService<WorkService>();//регестрирует и запускает фоновую задачу
             var setting = new Setting();
@@ -43,13 +42,6 @@ namespace ClientCardTransfer
             //services.AddSingleton(new TxtToSqlLoader(Configuration.GetConnectionString("DataBaseAddres")));
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("DataBaseAddres")));
-
-            // Регистрация репозиториев и UnitOfWork
-            services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-            services.AddScoped<ICardRepository, CardRepository>();
-            services.AddScoped<IClientRepository, ClientRepository>();
-            services.AddScoped<IUnitOfWork, UnitOfWork>();
-
             services.AddControllers();
 
         }
