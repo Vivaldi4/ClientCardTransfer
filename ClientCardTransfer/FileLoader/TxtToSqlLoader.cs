@@ -34,8 +34,8 @@ namespace ClientCardTransfer.FileLoader
         {
             try
             {
-                List<Client> clients = LoadClientsFromTextFile(clientFilePath); // Загрузка клиентов из файла
-                List<Card> cards = LoadCardsFromTextFile(cardFilePath, _clientRepository); // Загрузка карт из файла
+                List<Client> clients = await LoadClientsFromTextFile(clientFilePath); // Загрузка клиентов из файла
+                List<Card> cards = await LoadCardsFromTextFile(cardFilePath, _clientRepository); // Загрузка карт из файла
 
                 // Очистка существующих данных перед загрузкой новых данных
                 await _clientRepository.ClearAllClients();
@@ -54,49 +54,57 @@ namespace ClientCardTransfer.FileLoader
                 throw; // Или выполните другую обработку ошибки, в зависимости от требований
             }
         }
-        private static List<Client> LoadClientsFromTextFile(string filePath)
+        private static async Task<List<Client>> LoadClientsFromTextFile(string filePath)
         {
             List<Client> clients = new List<Client>();
             int id = 1;
-            foreach (string line in File.ReadAllLines(filePath))
-            {
-                string[] values = line.Split('|');
-                string name = values[0];
-                string extenalId= values[1];
 
-                Client client = new Client()
+            using (StreamReader reader = new StreamReader(filePath))
+            {
+                string line;
+                while ((line = await reader.ReadLineAsync()) != null)
                 {
-                    Id = id,
-                    Name = name,
-                    ExtenalId = extenalId
-                };
-                id++;
-                clients.Add(client);
+                    string[] values = line.Split('|');
+                    string name = values[0];
+                    string extenalId = values[1];
+
+                    Client client = new Client()
+                    {
+                        Id = id,
+                        Name = name,
+                        ExtenalId = extenalId
+                    };
+                    id++;
+                    clients.Add(client);
+                }
             }
 
             return clients;
         }
 
-        private static List<Card> LoadCardsFromTextFile(string filePath, IClientRepository _clientRepository)
+        private static async Task<List<Card>> LoadCardsFromTextFile(string filePath, IClientRepository _clientRepository)
         {
-                List<Card> cards = new List<Card>();
-                int id = 1;
-                foreach (string line in File.ReadAllLines(filePath))
+            List<Card> cards = new List<Card>();
+            int id = 1;
+
+            using (StreamReader reader = new StreamReader(filePath))
+            {
+                string line;
+                while ((line = await reader.ReadLineAsync()) != null)
                 {
                     string[] values = line.Split('|');
 
-
-
                     Card card = new Card()
                     {
-                        Id =id ,
+                        Id = id,
                         ClientExtenalId = values[3].Trim(),
                         CardNumber = values[0].Trim(),
                         CardType = values[1].Trim(),
                         BankName = values[2].Trim()
                     };
+
                     // Находим клиента по внешнему идентификатору (номеру договора)
-                    var client = _clientRepository.GetClientByExtenalId(card.ClientExtenalId).Result;
+                    var client = await _clientRepository.GetClientByExtenalId(card.ClientExtenalId);
 
                     if (client != null)
                     {
@@ -106,8 +114,9 @@ namespace ClientCardTransfer.FileLoader
                     id++;
                     cards.Add(card);
                 }
-                return cards;
-            
+            }
+
+            return cards;
         }
     }
 }

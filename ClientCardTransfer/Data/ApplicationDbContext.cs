@@ -14,14 +14,29 @@ namespace ClientCardTransfer.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Определение конфигураций сущностей (если есть)
-            //modelBuilder.ApplyConfiguration(new CardConfiguration());
-            // modelBuilder.ApplyConfiguration(new ClientConfiguration());
+
             // Определение отношений между моделями Client и Card
-            modelBuilder.Entity<Card>()
-                .HasOne(c => c.Client)
-                .WithMany(c => c.Cards)
-                .HasForeignKey(c => c.ClientId);
+            modelBuilder.Entity<Client>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).ValueGeneratedOnAdd();
+                entity.Property(e => e.Name).IsRequired();
+                entity.Property(e => e.ExtenalId).IsRequired();
+                entity.HasMany(c => c.Cards)
+                    .WithOne(c => c.Client)
+                    .HasForeignKey(c => c.ClientId)
+                    .OnDelete(DeleteBehavior.Restrict); // Опционально указываете правило удаления записей связанных таблиц
+            });
+
+            modelBuilder.Entity<Card>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).ValueGeneratedOnAdd();
+                entity.Property(e => e.ClientExtenalId).IsRequired();
+                entity.Property(e => e.CardNumber).IsRequired();
+                entity.Property(e => e.CardType).IsRequired();
+                entity.Property(e => e.BankName).IsRequired();
+            });
 
             base.OnModelCreating(modelBuilder);
         }

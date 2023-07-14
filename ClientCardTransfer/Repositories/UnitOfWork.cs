@@ -1,5 +1,6 @@
 ﻿using ClientCardTransfer.Data;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Threading.Tasks;
 
 namespace ClientCardTransfer.Repositories
@@ -9,38 +10,17 @@ namespace ClientCardTransfer.Repositories
     public class UnitOfWork : IUnitOfWork
     {
         private readonly ApplicationDbContext _context;
-        private ICardRepository _cardRepository;
-        private IClientRepository _clientRepository;
+        private Lazy<ICardRepository> _cardRepository;
+        private Lazy<IClientRepository> _clientRepository;
+        public ICardRepository CardRepository => _cardRepository.Value;
+        public IClientRepository ClientRepository => _clientRepository.Value;
 
         public UnitOfWork(ApplicationDbContext context)
         {
             _context = context;
+            _cardRepository = new Lazy<ICardRepository>(() => new CardRepository(_context));
+            _clientRepository = new Lazy<IClientRepository>(() => new ClientRepository(_context));
         }
-
-        public ICardRepository CardRepository
-        {
-            get
-            {
-                if (_cardRepository == null)
-                {
-                    _cardRepository = new CardRepository(_context);
-                }
-                return _cardRepository;
-            }
-        }
-
-        public IClientRepository ClientRepository
-        {
-            get
-            {
-                if (_clientRepository == null)
-                {
-                    _clientRepository = new ClientRepository(_context);
-                }
-                return _clientRepository;
-            }
-        }
-
         public async Task<int> SaveChangesAsync()
         {
             return await _context.SaveChangesAsync();
