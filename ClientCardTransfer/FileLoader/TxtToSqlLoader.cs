@@ -20,21 +20,7 @@ namespace ClientCardTransfer.FileLoader
         {                                  
             using (var context = new MyDbContext(_connectionString))
             {
-                // Проверка, существуют ли таблицы Clients и Cards в базе данных
-                //bool clientsTableExists = context.Database.GetDbConnection().GetSchema("Tables").Rows
-                  //  .OfType<DataRow>()
-                    //.Any(row => row["TABLE_NAME"].ToString() == "Clients");
-
-                //bool cardsTableExists = context.Database.GetDbConnection().GetSchema("Tables").Rows
-                 //   .OfType<DataRow>()
-                   // .Any(row => row["TABLE_NAME"].ToString() == "Cards");
-
-                // Если таблицы уже существуют, удаляем все записи из них
-               // if (clientsTableExists)
-                 //   context.Clients.RemoveRange(context.Clients);
-
-                //if (cardsTableExists)
-                   // context.Cards.RemoveRange(context.Cards);
+                
 
                 //context.SaveChanges();
                 List<Client> clients = LoadClientsFromTextFile(clientFilePath); // Загрузка клиентов из файла
@@ -148,23 +134,5 @@ namespace ClientCardTransfer.FileLoader
                 .HasForeignKey(c => c.ClientId);
         }
     }
-    public partial class IsMarriedToUserAdded : Migration
-    {
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.AddColumn<bool>(
-                name: "IsMarried",
-                table: "Users",
-                type: "bit",
-                nullable: false,
-                defaultValue: false);
-        }
-
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropColumn(
-                name: "IsMarried",
-                table: "Users");
-        }
-    }
+  
 }

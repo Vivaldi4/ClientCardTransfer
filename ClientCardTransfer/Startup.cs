@@ -1,9 +1,12 @@
+using ClientCardTransfer.Data;
 using ClientCardTransfer.FileLoader;
+using ClientCardTransfer.Repositories;
 using ClientCardTransfer.Service;
 using ClientCardTransfer.Settings;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -25,12 +28,23 @@ namespace ClientCardTransfer
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddLogging();
             services.AddHostedService<WorkService>();//регестрирует и запускает фоновую задачу
             var setting = new Setting();
             Configuration.GetSection(key: "Setting").Bind(setting);
             services.AddSingleton(setting);
-            services.AddSingleton(new TxtToSqlLoader(Configuration.GetConnectionString("DataBaseAddres")));
-            
+            //services.AddSingleton(new TxtToSqlLoader(Configuration.GetConnectionString("DataBaseAddres")));
+            services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseSqlServer(Configuration.GetConnectionString("DataBaseAddres")));
+
+            // Регистрация репозиториев и UnitOfWork
+            services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+            services.AddScoped<ICardRepository, CardRepository>();
+            services.AddScoped<IClientRepository, ClientRepository>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            services.AddControllers();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -40,17 +54,24 @@ namespace ClientCardTransfer
             {
                 app.UseDeveloperExceptionPage();
             }
-
+            else
+            {
+                app.UseExceptionHandler("/Error");
+                app.UseHsts();
+            }
+            app.UseHttpsRedirection();
             app.UseRouting();
-
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapGet("/", async context =>
-                {
-                    await context.Response.WriteAsync("Hello World!");
-
-                });
+                endpoints.MapControllers();
             });
+            //app.UseEndpoints(endpoints =>
+            //{
+            //  endpoints.MapGet("/", async context =>
+            //{
+            //  await context.Response.WriteAsync("Hello World!");
+            //                    });
+            //});
         }
     }
 }

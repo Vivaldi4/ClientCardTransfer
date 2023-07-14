@@ -2,7 +2,9 @@
 
 namespace ClientCardTransfer.Models
 {
-
+    /// <summary>
+    /// Класс сущности Card
+    /// </summary>
     public class Card
     {
         public int Id { get; set; }

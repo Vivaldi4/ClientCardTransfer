@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 
 namespace ClientCardTransfer.Models
-{
+{/// <summary>
+/// Класс сущности Client
+/// </summary>
     public class Client
     {
         public Client()

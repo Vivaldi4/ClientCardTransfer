@@ -7,20 +7,22 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using ClientCardTransfer.FileLoader;
+using ClientCardTransfer.Repositories;
 
 namespace ClientCardTransfer.Service
 {
     public class WorkService : BackgroundService
     {
         private readonly ILogger<WorkService> _logger;
-
+        private readonly IUnitOfWork _unitOfWork;
         private readonly Setting _setting;
         private readonly TxtToSqlLoader _xtToSqlLoader;
-        public WorkService(ILogger<WorkService> logger, Setting setting, TxtToSqlLoader txtToSqlLoader)
+        public WorkService(ILogger<WorkService> logger, Setting setting, TxtToSqlLoader txtToSqlLoader, IUnitOfWork unitOfWork)
         {
             _logger = logger;
             _setting = setting;
-            _xtToSqlLoader= txtToSqlLoader;
+            _xtToSqlLoader = txtToSqlLoader;
+            _unitOfWork = unitOfWork;
         }
         private static string ExtractValueAfterSubstring(string fileName, string substring)
         {
@@ -56,24 +58,15 @@ namespace ClientCardTransfer.Service
                         if (string.Equals(key1, key2, StringComparison.OrdinalIgnoreCase))
                         {
                             _logger.LogInformation($"Пара найдена!!!Документ клиентов:{clientFile} Документ Карт клиентов{cardFile}");
-                            
+
                             //TxtToSqlLoader txtToSql = new TxtToSqlLoader("DataBaseAddres");
                             //txtToSql.LoadFilesToSql(clientFile, cardFile);
-                            _xtToSqlLoader.LoadFilesToSql(clientFile, cardFile);
+                             _xtToSqlLoader.LoadFilesToSql(clientFile, cardFile);
 
                         }
                     }
 
                 }
-
-
-
-
-
-
-
-                // _logger.LogInformation($"Пара найдена!!!Документ клиентов:{files[fileClient].FullName} Документ Карт клиентов{files[fileCard].FullName}"); 
-
                 await Task.Delay(10000, stoppingToken);
             }
         }
