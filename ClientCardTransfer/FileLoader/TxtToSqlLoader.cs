@@ -35,7 +35,7 @@ namespace ClientCardTransfer.FileLoader
             try
             {
                 List<Client> clients = LoadClientsFromTextFile(clientFilePath); // Загрузка клиентов из файла
-                List<Card> cards = LoadCardsFromTextFile(cardFilePath); // Загрузка карт из файла
+                List<Card> cards = LoadCardsFromTextFile(cardFilePath, _clientRepository); // Загрузка карт из файла
 
                 // Очистка существующих данных перед загрузкой новых данных
                 await _clientRepository.ClearAllClients();
@@ -77,7 +77,7 @@ namespace ClientCardTransfer.FileLoader
             return clients;
         }
 
-        private static List<Card> LoadCardsFromTextFile(string filePath)
+        private static List<Card> LoadCardsFromTextFile(string filePath, IClientRepository _clientRepository)
         {
                 List<Card> cards = new List<Card>();
                 int id = 1;
